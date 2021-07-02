@@ -1,0 +1,19 @@
+{
+  "name": "L298N_driver",
+  "keywords": "L298N, motor driver",
+  "description": "A very basic library to use the L298N driver",
+  "url": "https://github.com/chick92/L298N_driver",
+  "include": "L298N",
+  "authors":
+  [
+    {
+      "name": "Dr. Benjamin Bird"
+    }
+  ],
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/chick92/L298N_driver"
+  },
+  "frameworks": "arduino"
+}
