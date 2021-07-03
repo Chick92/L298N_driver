@@ -4,13 +4,16 @@
 #include <RotaryEncoder.h>
 #include <PID_v1.h>
 
-L298N::L298N(char IN1, char IN2, char EN, char INT1, Char INT2)
+L298N::L298N(char IN1, char IN2, char EN, char INT1, char INT2)
 {
 	pinMode(IN1, OUTPUT);
 	pinMode(IN2, OUTPUT);
 	pinMode(EN, OUTPUT);
-	attachInterrupt(digitalPinToInterrupt(A_INT1), checkPosition, CHANGE);
-	attachInterrupt(digitalPinToInterrupt(A_INT2), checkPosition, CHANGE);
+
+	_INT1 = INT1;
+	_INT2 = INT2;
+	attachInterrupt(digitalPinToInterrupt(_INT1), checkPosition, CHANGE);
+	attachInterrupt(digitalPinToInterrupt(_INT2), checkPosition, CHANGE);
 	pinMode(INT1, INPUT);
 	pinMode(INT2, INPUT);
 	
@@ -26,8 +29,8 @@ L298N::L298N(char IN1, char IN2, char EN, char INT1, Char INT2)
 	_IN1 = IN1;
 	_IN2 = IN2;
 	_EN = EN;
-	_INT1 = INT1;
-	_INT2 = INT2;
+
+	
 }
 
 void L298N::checkPosition(){
