@@ -27,8 +27,8 @@ class L298N
 	double Input = 0;
 	double Kp=1.3, Ki=15, Kd=0.01;
 
-  RotaryEncoder encoder(char A_INT1, char A_INT2, RotaryEncoder::LatchMode::TWO03);
-  PID pid(double &Input, double &Output, double &Setpoint, double Kp, double Ki, double Kd, char DIRECT);	
+  RotaryEncoder encoder;//(char A_INT1, char A_INT2, RotaryEncoder::LatchMode::TWO03);
+  PID pid;//(double &Input, double &Output, double &Setpoint, double Kp, double Ki, double Kd, char DIRECT);	
 	
 	void checkPosition();
 	double calculate_rpm();

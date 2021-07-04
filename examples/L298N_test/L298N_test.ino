@@ -1,4 +1,6 @@
 #include <L298N.h>
+#include <RotaryEncoder.h>
+#include <PID_v1.h>
 
 char A_IN1 = 8;
 char A_IN2 = 9;
