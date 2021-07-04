@@ -13,7 +13,7 @@
 class L298N
 {
   public:
-    L298N(char IN1, char IN2, char EN, char INT1, char INT2);
+    L298N(char IN1, char IN2, char EN, char A_INT1, char A_INT2);
 	void set_rpm(int rpm);
 	
   private:
@@ -26,9 +26,9 @@ class L298N
 	double Setpoint, Output;
 	double Input = 0;
 	double Kp=1.3, Ki=15, Kd=0.01;
-	
-	RotaryEncoder encoder(INT1, INT2, RotaryEncoder::LatchMode::TWO03);
-	PID PID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
+
+  RotaryEncoder encoder(char A_INT1, char A_INT2, RotaryEncoder::LatchMode::TWO03);
+  PID pid(double &Input, double &Output, double &Setpoint, double Kp, double Ki, double Kd, char DIRECT);	
 	
 	void checkPosition();
 	double calculate_rpm();

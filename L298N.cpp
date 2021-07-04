@@ -4,21 +4,24 @@
 #include <RotaryEncoder.h>
 #include <PID_v1.h>
 
-L298N::L298N(char IN1, char IN2, char EN, char INT1, char INT2)
+L298N::L298N(char IN1, char IN2, char EN, char A_INT1, char A_INT2)
 {
 	pinMode(IN1, OUTPUT);
 	pinMode(IN2, OUTPUT);
 	pinMode(EN, OUTPUT);
 
-	attachInterrupt(digitalPinToInterrupt(INT1), checkPosition, CHANGE);
-	attachInterrupt(digitalPinToInterrupt(INT2), checkPosition, CHANGE);
-	pinMode(INT1, INPUT);
-	pinMode(INT2, INPUT);
+	attachInterrupt(digitalPinToInterrupt(A_INT1), checkPosition, CHANGE);
+	attachInterrupt(digitalPinToInterrupt(A_INT2), checkPosition, CHANGE);
+	pinMode(A_INT1, INPUT);
+	pinMode(A_INT2, INPUT);
 	
+	RotaryEncoder encoder(A_INT1, A_INT2, RotaryEncoder::LatchMode::TWO03);
+	PID pid(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
+
 	
-	PID.SetSampleTime(20);
-	PID.SetMode(AUTOMATIC);
-	PID.SetOutputLimits(0,255);
+	pid.SetSampleTime(20);
+	pid.SetMode(AUTOMATIC);
+	pid.SetOutputLimits(0,255);
 	
 	_IN1 = IN1;
 	_IN2 = IN2;
@@ -53,7 +56,7 @@ double L298N::calculate_rpm(){
 void L298N::set_rpm(int rpm){
 	Setpoint = rpm;//covert_vel_rpm(vel);
 	Input = calculate_rpm();
-	myPID.Compute();
+	pid.Compute();
 
 	if (Setpoint > 0.0){
 		forwards(char(Output)); 
