@@ -18,11 +18,16 @@ class L298N
 	
   private:
     char _IN1, _IN2, _EN, _INT1, _INT2;
-	double Input, Output, Setpoint, Kp, Ki, Kd;
-	double last_time, tick_time;
-	long old_position;
 	
-	RotaryEncoder encoder(_INT1, _INT2, RotaryEncoder::LatchMode::TWO03);
+	double last_time = millis();
+	double tick_time = 0;
+	long old_position = 0;
+
+	double Setpoint, Output;
+	double Input = 0;
+	double Kp=1.3, Ki=15, Kd=0.01;
+	
+	RotaryEncoder encoder(INT1, INT2, RotaryEncoder::LatchMode::TWO03);
 	PID PID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
 	
 	void checkPosition();
@@ -35,15 +40,6 @@ class L298N
 
 /*
 Arduino: 1.8.15 (Linux), Board: "Arduino Uno"
-
-
-
-
-
-
-
-
-
 
 
 In file included from /home/ubuntu/arduino-1.8.15/hardware/tools/avr/avr/include/avr/io.h:272:0,

@@ -10,18 +10,12 @@ L298N::L298N(char IN1, char IN2, char EN, char INT1, char INT2)
 	pinMode(IN2, OUTPUT);
 	pinMode(EN, OUTPUT);
 
-	_INT1 = INT1;
-	_INT2 = INT2;
-	attachInterrupt(digitalPinToInterrupt(_INT1), checkPosition, CHANGE);
-	attachInterrupt(digitalPinToInterrupt(_INT2), checkPosition, CHANGE);
+	attachInterrupt(digitalPinToInterrupt(INT1), checkPosition, CHANGE);
+	attachInterrupt(digitalPinToInterrupt(INT2), checkPosition, CHANGE);
 	pinMode(INT1, INPUT);
 	pinMode(INT2, INPUT);
 	
-	last_time = millis();
-	tick_time = 0;
-	old_position = 0;
 	
-	Setpoint = 0;
 	PID.SetSampleTime(20);
 	PID.SetMode(AUTOMATIC);
 	PID.SetOutputLimits(0,255);
