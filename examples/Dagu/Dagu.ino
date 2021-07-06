@@ -18,7 +18,7 @@ long old_position_left = 0;
 
 double last_time_right = millis();
 double tick_time_right = 0;
-long old_position_right = 0
+long old_position_right = 0;
 
 //dagu wheel radius = 31mm circumfrance 0.19478, 125 encoder ticks per rev
 
@@ -65,7 +65,7 @@ double calculate_rpm_right(){
   if (new_position_right != old_position_right) {
     tick_time_right = (millis() - last_time_right);
     position_change_right = old_position_right - new_position_right;
-    RPM_left = 1 / ((double(tick_time_right / position_change_right) * 125)/1000/60); //10041 18538 = ticks per rev, 1 rev = 42.73cm
+    RPM_right = 1 / ((double(tick_time_right / position_change_right) * 125)/1000/60); //10041 18538 = ticks per rev, 1 rev = 42.73cm
     old_position_right = new_position_right;
     last_time_right = millis();   
   }
