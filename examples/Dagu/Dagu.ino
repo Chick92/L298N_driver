@@ -4,21 +4,32 @@
 #include <L298N.h>
 
 char A_IN1 = 8, A_IN2 = 9, A_EN = 17, A_INT1 = 4, A_INT2 = 5;
-char B_IN1 = 10, B_IN2 = 11, B_EN = 16, B_INT1 = 2, B_INT2 = 3;
+char B_IN1 = 10, B_IN2 = 11, B_EN = 16, B_INT1 = 3, B_INT2 = 2;
 
 double SetpointLeft, OutputLeft;
 double InputLeft = 0;
 double SetpointRight, OutputRight;
 double InputRight = 0;
-double Kp=1.3, Ki=15, Kd=0.01;
+double Kp=4, Ki=10, Kd=1;
 
-double last_time_left = millis();
+double last_time_left = micros();
 double tick_time_left = 0;
 long old_position_left = 0;
 
-double last_time_right = millis();
+double last_time_right = micros();
 double tick_time_right = 0;
 long old_position_right = 0;
+
+double old_tick_duration_left = millis();
+double tick_duration_left = 0.0;
+double old_tick_duration_right = millis();
+double tick_duration_right = 0.0;
+double tick_output_left = 0, tick_output_right = 0;
+char tick_counter_left = 0, tick_counter_right = 0;
+double rpm_left = 0, rpm_right = 0;
+
+int watchdog_right = 0;
+int watchdog_left = 0;
 
 //dagu wheel radius = 31mm circumfrance 0.19478, 125 encoder ticks per rev
 
@@ -32,57 +43,91 @@ PID PID_right(&InputRight, &OutputRight, &SetpointRight, Kp, Ki, Kd, DIRECT);
 
 void CheckPositionLeft(){
   encoder_left.tick();
+  watchdog_left = 0;
+  tick_duration_left = (millis() - old_tick_duration_left);
+  old_tick_duration_left = millis();
+  tick_output_left += 1/((tick_duration_left * 333)/1000/60);
+  if(tick_counter_left == 4){
+    rpm_left = tick_output_left / 5;
+    tick_counter_left = 0;
+    tick_output_left = 0;
+    }
+  tick_counter_left++;
 }
 
 void CheckPositionRight(){
   encoder_right.tick();
+  watchdog_right = 0;
+  tick_duration_right = (millis() - old_tick_duration_right);
+  old_tick_duration_right = millis();
+  tick_output_right += 1/((tick_duration_right * 333)/1000/60);
+  if(tick_counter_right == 4){
+    rpm_right = tick_output_right / 5;
+    tick_counter_right = 0;
+    tick_output_right = 0;
+    }
+  tick_counter_right++;
 }
 
-double calculate_rpm_left(){
-  long new_position_left = encoder_left.getPosition();
-  long position_change_left;
-  double RPM_left;
-
-  if (new_position_left != old_position_left) {
-    tick_time_left = (millis() - last_time_left);
-    position_change_left = old_position_left - new_position_left;
-    RPM_left = 1 / ((double(tick_time_left / position_change_left) * 125)/1000/60); //10041 18538 = ticks per rev, 1 rev = 42.73cm
-    old_position_left = new_position_left;
-    last_time_left = millis();   
-  }
-  else{
-    RPM_left = 0.0;
-  }
-  delay(20);
-  return RPM_left;
-}
-
-double calculate_rpm_right(){
-  long new_position_right = encoder_right.getPosition();
-  long position_change_right;
-  double RPM_right;
-
-  if (new_position_right != old_position_right) {
-    tick_time_right = (millis() - last_time_right);
-    position_change_right = old_position_right - new_position_right;
-    RPM_right = 1 / ((double(tick_time_right / position_change_right) * 125)/1000/60); //10041 18538 = ticks per rev, 1 rev = 42.73cm
-    old_position_right = new_position_right;
-    last_time_right = millis();   
-  }
-  else{
-    RPM_right = 0.0;
-  }
-  delay(20);
-  return RPM_right;
-}
-
-
-
-//double covert_vel_rpm(double vel){
-//  double RPM; 
-//  RPM = (vel / wheel_circumfrance) * 60;
-//  return RPM;
+//void CheckPositionLeft(){
+//  encoder_left.tick();
+//  tick_duration_left = (millis() - old_tick_duration_left);
+//  old_tick_duration_left = millis();
+//  rpm_left = 1/((tick_duration_left * 333)/1000/60);
 //}
+//
+//void CheckPositionRight(){
+//  encoder_right.tick();
+//  tick_duration_right = (millis() - old_tick_duration_right);
+//  old_tick_duration_right = millis();
+//  rpm_right = 1/((tick_duration_right * 333)/1000/60);
+//}
+
+//double calculate_rpm_left(){
+//  long new_position_left = encoder_left.getPosition();
+//  long position_change_left;
+//  double RPM_left;
+//
+//  if (new_position_left != old_position_left) {
+//    tick_time_left = (micros() - last_time_left);
+//    position_change_left = old_position_left - new_position_left;
+//    RPM_left = 1 / ((double(tick_time_left / position_change_left) * 166)/1000000/60); //125?
+//    old_position_left = new_position_left;
+//    last_time_left = micros();   
+//  }
+//  //else{
+//    //RPM_left = 0.0;
+//  //}
+//  delay(50);
+//  return RPM_left;
+//}
+//
+//double calculate_rpm_right(){
+//  long new_position_right = encoder_right.getPosition();
+//  long position_change_right;
+//  double RPM_right;
+//
+//  if (new_position_right != old_position_right) {
+//    tick_time_right = (micros() - last_time_right);
+//    position_change_right = old_position_right - new_position_right;
+//    RPM_right = 1 / ((double(tick_time_right / position_change_right) * 166)/1000000/60); // right encoder seems to give 166 ticks per rev....
+//    old_position_right = new_position_right;
+//    last_time_right = micros();   
+//  }
+//  //else{
+//    //RPM_right = 0.0;
+//  //}
+//  delay(50);
+//  return RPM_right;
+//}
+
+
+
+double convert_vel_rpm(double vel){
+  double RPM; 
+  RPM = (vel / 0.19478) * 60;
+  return RPM;
+}
 
 
 
@@ -99,10 +144,10 @@ void setup(){
 
   SetpointLeft = 0;
   SetpointRight = 0;
-  PID_left.SetSampleTime(20);
+  PID_left.SetSampleTime(50);
   PID_left.SetMode(AUTOMATIC);
   PID_left.SetOutputLimits(0,255);
-  PID_right.SetSampleTime(20);
+  PID_right.SetSampleTime(50);
   PID_right.SetMode(AUTOMATIC);
   PID_right.SetOutputLimits(0,255);
 } // setup()
@@ -110,34 +155,75 @@ void setup(){
 
 // Read the current position of the encoder and print out when changed.
 void loop(){
-  SetpointLeft = 20.0;//covert_vel_rpm(vel);
-  SetpointRight = 20.0;
-  InputLeft = calculate_rpm_left();
-  InputRight = calculate_rpm_right();
-  PID_left.Compute();
-  PID_right.Compute();
+  double vel_r, vel_l, th, x;
+  double robot_width = 0.2;
+
+  x = 0.0;//0.5;//-0.8;
+  th = 0.1;//0.95;
+
+  while(1){
+
+    vel_r = ((2*x) + (th*robot_width))/2;
+    vel_l = ((2*x) - (th*robot_width))/2;
+    
+    if(vel_l > 0.0){
+      SetpointLeft = convert_vel_rpm(vel_l);    
+    }
+    else{
+      SetpointLeft = convert_vel_rpm(-vel_l);
+    }
+    if(vel_r > 0.0){
+      SetpointRight = convert_vel_rpm(vel_r);    
+    }
+    else{
+      SetpointRight = convert_vel_rpm(-vel_r);
+    }
+    
+    
+    if (watchdog_left > 20){
+      rpm_left = 0;
+    }
+    if (watchdog_right > 20){
+      rpm_right = 0;
+    }
+    
+    InputLeft = rpm_left;//calculate_rpm_left();
+    InputRight = rpm_right;//calculate_rpm_right();
+    PID_left.Compute();
+    PID_right.Compute();
+    
 
 
-  if (SetpointLeft > 0.0){
-    left.forwards(char(OutputLeft)); 
-  }
-  else{
-    left.backwards(char(OutputLeft));
+
+    if (vel_l > 0.0){
+      left.forwards(char(OutputLeft)); 
+    }
+    else{
+      left.backwards(char(OutputLeft));
+    }
+
+    if (vel_r > 0.0){
+      right.forwards(char(OutputRight)); 
+    }
+    else{
+      right.backwards(char(OutputRight));
+    }
+      Serial.print("Output_PWM:");
+      Serial.print(OutputLeft);
+      Serial.print(",");
+      Serial.print("Input_RPM:");
+      Serial.print(InputLeft);
+      Serial.print(",");
+      Serial.print("Setpoint:");
+      Serial.println(SetpointLeft);
+      //Serial.print("tick_output_left:");
+      //Serial.print(tick_output_left);
+      //Serial.print(",");
+      //Serial.print("tick_output_right:");
+      //Serial.println(tick_output_right);
+      watchdog_left++;
+      watchdog_right++;
   }
 
-  if (SetpointRight > 0.0){
-    right.forwards(char(OutputRight)); 
-  }
-  else{
-    right.backwards(char(OutputRight));
-  }
-//    Serial.print("Output_PWM:");
-//    Serial.print(Output);
-//    Serial.print(",");
-//    Serial.print("Input_RPM:");
-//    Serial.print(Input);
-//    Serial.print(",");
-//    Serial.print("Setpoint:");
-//    Serial.println(Setpoint);
        
 } // loop ()
