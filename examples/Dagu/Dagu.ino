@@ -2,9 +2,13 @@
 #include <RotaryEncoder.h>
 #include <PID_v1.h>
 #include <L298N.h>
+#include <Adafruit_NeoPixel.h>
+
 
 char A_IN1 = 8, A_IN2 = 9, A_EN = 17, A_INT1 = 4, A_INT2 = 5;
 char B_IN1 = 10, B_IN2 = 11, B_EN = 16, B_INT1 = 3, B_INT2 = 2;
+int AnPin1 = A1;
+
 
 double SetpointLeft, OutputLeft;
 double InputLeft = 0;
@@ -39,6 +43,8 @@ L298N left(A_IN1, A_IN2, A_EN);
 L298N right(B_IN1, B_IN2, B_EN);
 PID PID_left(&InputLeft, &OutputLeft, &SetpointLeft, Kp, Ki, Kd, DIRECT);
 PID PID_right(&InputRight, &OutputRight, &SetpointRight, Kp, Ki, Kd, DIRECT);
+Adafruit_NeoPixel pixels(1, 28, NEO_GRB + NEO_KHZ800);
+
 
 
 void CheckPositionLeft(){
@@ -129,6 +135,21 @@ double convert_vel_rpm(double vel){
   return RPM;
 }
 
+void battery_status(){
+  int scaled;
+  float ana1;
+  ana1 = (float(analogRead(AnPin1))*(3.3/1023.0) * 175550) / 32450;
+  Serial.println(ana1);
+  scaled = (ana1 - 12) / (4.8 / 255); // 4.8v range
+  if(scaled < 0){
+    scaled = 0;
+  }
+  Serial.println(scaled);
+  pixels.clear(); // Set all pixel colors to 'off'
+  pixels.setPixelColor(0, pixels.Color((255-scaled), scaled, 0)); //RGB values
+  pixels.show();   // Send the updated pixel colors to the hardware.
+}
+
 
 
 void setup(){
@@ -150,6 +171,10 @@ void setup(){
   PID_right.SetSampleTime(50);
   PID_right.SetMode(AUTOMATIC);
   PID_right.SetOutputLimits(0,255);
+
+  pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
+
+  
 } // setup()
 
 
@@ -208,14 +233,14 @@ void loop(){
     else{
       right.backwards(char(OutputRight));
     }
-      Serial.print("Output_PWM:");
-      Serial.print(OutputLeft);
-      Serial.print(",");
-      Serial.print("Input_RPM:");
-      Serial.print(InputLeft);
-      Serial.print(",");
-      Serial.print("Setpoint:");
-      Serial.println(SetpointLeft);
+      //Serial.print("Output_PWM:");
+      //Serial.print(OutputLeft);
+      //Serial.print(",");
+      //Serial.print("Input_RPM:");
+      //Serial.print(InputLeft);
+      //Serial.print(",");
+      //Serial.print("Setpoint:");
+      //Serial.println(SetpointLeft);
       //Serial.print("tick_output_left:");
       //Serial.print(tick_output_left);
       //Serial.print(",");
@@ -223,6 +248,7 @@ void loop(){
       //Serial.println(tick_output_right);
       watchdog_left++;
       watchdog_right++;
+      battery_status();
   }
 
        
