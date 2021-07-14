@@ -48,18 +48,18 @@ void loop(){	// drive in a circle
 	odom.pose.pose.position.x = x;
 	odom.pose.pose.position.y = y;
 	odom.pose.pose.position.z = 0.0;
-	odom.pose.pose.orientation = tf::createQuaternionMsgFromYaw(theta);
+	odom.pose.pose.orientation = tf::createQuaternionFromYaw(theta);
 
 	//set the velocity
 	odom.child_frame_id = "base_link";
-	odom.twist.twist.linear.x = vx;
-	odom.twist.twist.linear.y = vy;
-	odom.twist.twist.angular.z = vth;
+	odom.twist.twist.linear.x =0.0;// vx;
+	odom.twist.twist.linear.y = 0.0;//vy;
+	odom.twist.twist.angular.z = 0.0;//vth;
 
 	//publish the message
-	odom_pub.publish(odom);
+	odom_pub.publish(&odom);
 
-	last_time = current_time;
+	//last_time = current_time;
 
 	nh.spinOnce();	
 	delay(10);
